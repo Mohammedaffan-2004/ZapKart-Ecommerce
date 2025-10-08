@@ -1,12 +1,9 @@
 // components/cart/CartDrawer.jsx
-import React from "react";
-import { useNavigate } from "react-router-dom"; // UPDATE: Imported useNavigate
+import React, { useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { ShoppingCart, X, Trash2, ArrowRight, Plus, Minus } from "lucide-react";
-import { motion as Motion , AnimatePresence } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../../context/CartContext";
-
-// --- UPDATE: Moved helper functions into the component to remove external dependency ---
-// This makes the component self-contained and prevents errors from missing files.
 
 /**
  * Converts a price from USD to INR.
@@ -14,8 +11,10 @@ import { useCart } from "../../context/CartContext";
  * @returns {number} The price in INR.
  */
 const usdToInr = (usd) => {
+  // Ensure the input is a valid number
+  if (typeof usd !== 'number' || isNaN(usd)) return 0;
   const conversionRate = 83; // Example conversion rate
-  return usd * conversionRate;
+  return Math.round(usd * conversionRate);
 };
 
 /**
@@ -24,27 +23,57 @@ const usdToInr = (usd) => {
  * @returns {object} An object containing subtotal, tax, and total.
  */
 const calculateTotal = (cartItems) => {
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // Ensure cartItems is an array
+  if (!Array.isArray(cartItems)) return { subtotal: 0, tax: 0, total: 0 };
+  
+  const subtotal = cartItems.reduce((sum, item) => {
+    const price = typeof item.price === 'number' ? item.price : 0;
+    const quantity = typeof item.quantity === 'number' ? item.quantity : 0;
+    return sum + (price * quantity);
+  }, 0);
+  
   const taxRate = 0.18; // 18% tax
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
   return { subtotal, tax, total };
 };
 
-
 const CartDrawer = () => {
-  const navigate = useNavigate(); // UPDATE: Hook for navigation
+  const navigate = useNavigate();
   const { cart, removeFromCart, updateQuantity, clearCart, isCartOpen, setCartOpen } = useCart();
   
-  // --- UPDATE: Using the helper functions defined above ---
-  const { subtotal, tax, total } = calculateTotal(cart);
+  // Memoize the calculated totals to prevent unnecessary recalculations
+  const { subtotal, tax, total } = useMemo(() => calculateTotal(cart), [cart]);
+  
+  // Memoize the total items count
+  const totalItems = useMemo(() => 
+    cart.reduce((sum, item) => sum + (typeof item.quantity === 'number' ? item.quantity : 0), 0), 
+    [cart]
+  );
 
-  const handleCheckout = () => {
-    // In a real app, you might navigate to a checkout page
-    // For now, we'll just close the cart and show an alert.
+  // Memoize the checkout handler
+  const handleCheckout = useCallback(() => {
     setCartOpen(false);
-    navigate('/checkout'); // UPDATE: Navigate to the checkout page
-  };
+    navigate('/checkout');
+  }, [navigate, setCartOpen]);
+
+  // Memoize the clear cart handler with confirmation
+  const handleClearCart = useCallback(() => {
+    if (window.confirm('Are you sure you want to clear your cart?')) {
+      clearCart();
+    }
+  }, [clearCart]);
+
+  // Memoize the quantity update handlers
+  const handleDecreaseQuantity = useCallback((id, currentQuantity) => {
+    if (currentQuantity > 1) {
+      updateQuantity(id, currentQuantity - 1);
+    }
+  }, [updateQuantity]);
+
+  const handleIncreaseQuantity = useCallback((id, currentQuantity) => {
+    updateQuantity(id, currentQuantity + 1);
+  }, [updateQuantity]);
 
   return (
     <AnimatePresence>
@@ -56,6 +85,7 @@ const CartDrawer = () => {
             exit={{ opacity: 0 }}
             onClick={() => setCartOpen(false)}
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            aria-label="Cart overlay"
           />
           <Motion.div
             initial={{ x: "100%" }}
@@ -63,23 +93,27 @@ const CartDrawer = () => {
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25 }}
             className="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-slate-900/95 backdrop-blur-xl z-50 shadow-2xl border-l border-white/10 flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cart-heading"
           >
             {/* Header */}
             <div className="p-6 border-b border-white/10">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white flex items-center">
+                <h2 id="cart-heading" className="text-2xl font-bold text-white flex items-center">
                   <ShoppingCart className="h-6 w-6 mr-3 text-blue-400" />
                   Shopping Cart
                 </h2>
                 <button
                   onClick={() => setCartOpen(false)}
                   className="p-2 hover:bg-white/10 rounded-xl transition-colors"
+                  aria-label="Close cart"
                 >
                   <X className="h-6 w-6 text-gray-400" />
                 </button>
               </div>
               <p className="text-sm text-gray-400 mt-1">
-                {cart.reduce((sum, item) => sum + item.quantity, 0)} items
+                {totalItems} {totalItems === 1 ? 'item' : 'items'}
               </p>
             </div>
 
@@ -103,15 +137,13 @@ const CartDrawer = () => {
                       className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10"
                     >
                       <div className="flex gap-4">
-                        {/* --- UPDATE: Changed `thumbnail` to `image` for consistency --- */}
                         <img
-                          src={item.image}
-                          alt={item.name}
+                          src={item.image || 'https://picsum.photos/seed/product/200/200.jpg'}
+                          alt={item.name || 'Product'}
                           className="w-20 h-20 object-contain rounded-lg bg-gray-800"
                         />
                         <div className="flex-1">
-                          {/* --- UPDATE: Changed `title` to `name` for consistency --- */}
-                          <h3 className="font-medium text-white text-sm line-clamp-2 mb-1">{item.name}</h3>
+                          <h3 className="font-medium text-white text-sm mb-1 truncate">{item.name || 'Product'}</h3>
                           <p className="text-xs text-gray-400 mb-2">{item.category || 'Product'}</p>
                           <p className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
                             ₹{usdToInr(item.price).toLocaleString('en-IN')}
@@ -119,16 +151,18 @@ const CartDrawer = () => {
                           <div className="flex items-center justify-between mt-3">
                             <div className="flex items-center space-x-2">
                               <button
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors"
+                                onClick={() => handleDecreaseQuantity(item.id, item.quantity)}
+                                className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors disabled:opacity-50"
                                 disabled={item.quantity <= 1}
+                                aria-label={`Decrease quantity of ${item.name}`}
                               >
                                 <Minus className="h-3 w-3 text-gray-300" />
                               </button>
                               <span className="w-8 text-center font-medium text-white">{item.quantity}</span>
                               <button
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                onClick={() => handleIncreaseQuantity(item.id, item.quantity)}
                                 className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors"
+                                aria-label={`Increase quantity of ${item.name}`}
                               >
                                 <Plus className="h-3 w-3 text-gray-300" />
                               </button>
@@ -136,6 +170,7 @@ const CartDrawer = () => {
                             <button
                               onClick={() => removeFromCart(item.id)}
                               className="text-red-400 hover:text-red-300 p-1 transition-colors"
+                              aria-label={`Remove ${item.name} from cart`}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -167,7 +202,6 @@ const CartDrawer = () => {
                     </span>
                   </div>
                 </div>
-                {/* --- UPDATE: Connected the checkout button to navigation --- */}
                 <Motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -178,7 +212,7 @@ const CartDrawer = () => {
                   <ArrowRight className="h-5 w-5" />
                 </Motion.button>
                 <button
-                  onClick={clearCart}
+                  onClick={handleClearCart}
                   className="w-full mt-2 text-sm text-gray-400 hover:text-red-400 py-2 transition-colors"
                 >
                   Clear Cart

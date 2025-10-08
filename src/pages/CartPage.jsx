@@ -74,7 +74,7 @@ const CartPage = () => {
                   </h2>
                   <button
                     onClick={clearCart}
-                    className="text-sm text-red-400 hover:text-red-300 flex items-center transition-colors"
+                    className="text-sm text-red-400 hover:text-red-300 flex items-center transition-colors cursor-pointer"
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Clear Cart
@@ -107,14 +107,14 @@ const CartPage = () => {
                         <div className="flex items-center mt-3">
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors"
+                            className="w-8 cursor-pointer h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors"
                           >
                             <Minus className="h-4 w-4 text-gray-300" />
                           </button>
                           <span className="w-10 text-center font-medium text-white">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors"
+                            className="w-8 h-8 cursor-pointer rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors"
                           >
                             <Plus className="h-4 w-4 text-gray-300" />
                           </button>
@@ -125,7 +125,7 @@ const CartPage = () => {
                             onClick={() => removeFromCart(item.id)}
                             className="ml-4 text-red-400 hover:text-red-300 p-1 transition-colors"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 cursor-pointer" />
                           </button>
                         </div>
                       </div>
@@ -167,7 +167,7 @@ const CartPage = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleCheckout}
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:shadow-blue-500/25"
+                  className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:shadow-blue-500/25"
                 >
                   <span>Proceed to Checkout</span>
                   <ArrowRight className="h-5 w-5" />

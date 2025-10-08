@@ -1,36 +1,73 @@
 // context/CartContext.jsx
-import React, { createContext, useContext, useState, useEffect } from "react"; // UPDATE: Added useEffect
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNotification } from "./NotificationContext";
 
 const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
+// Helper function to safely get data from localStorage
+const getStorageItem = (key, defaultValue) => {
+  try {
+    const item = window.localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (error) {
+    console.error(`Error reading localStorage key "${key}":`, error);
+    return defaultValue;
+  }
+};
+
+// Helper function to safely set data in localStorage
+const setStorageItem = (key, value) => {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Error setting localStorage key "${key}":`, error);
+  }
+};
+
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
-  const [favorites, setFavorites] = useState([]);
+  // --- NEW: Initialize state from localStorage on first render ---
+  const [cart, setCart] = useState(() => getStorageItem('zapkart-cart', []));
+  const [favorites, setFavorites] = useState(() => getStorageItem('zapkart-favorites', []));
   const [cartOpen, setCartOpen] = useState(false);
   const { triggerNotification } = useNotification();
 
   // --- UPDATE: Made product name handling more robust ---
   const getProductName = (product) => product.name || product.title || "Product";
 
+  // --- NEW: Sync cart state to localStorage whenever it changes ---
+  useEffect(() => {
+    setStorageItem('zapkart-cart', cart);
+  }, [cart]);
+
+  // --- NEW: Sync favorites state to localStorage whenever it changes ---
+  useEffect(() => {
+    setStorageItem('zapkart-favorites', favorites);
+  }, [favorites]);
+
   const addToCart = (product) => {
-    const exists = cart.find(item => item.id === product.id);
-    if (exists) {
-      setCart(cart.map(item => 
-        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-      ));
-      triggerNotification("success", `Quantity updated for "${getProductName(product)}"`);
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
-      triggerNotification("success", `"${getProductName(product)}" added to cart`);
-    }
+    setCart(currentCart => {
+      const exists = currentCart.find(item => item.id === product.id);
+      if (exists) {
+        const updatedCart = currentCart.map(item => 
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+        triggerNotification("success", `Quantity updated for "${getProductName(product)}"`);
+        return updatedCart;
+      } else {
+        triggerNotification("success", `"${getProductName(product)}" added to cart`);
+        return [...currentCart, { ...product, quantity: 1 }];
+      }
+    });
   };
 
   const removeFromCart = (id) => {
-    const product = cart.find(item => item.id === id);
-    setCart(cart.filter(item => item.id !== id));
-    triggerNotification("success", `"${getProductName(product)}" removed from cart`);
+    setCart(currentCart => {
+      const product = currentCart.find(item => item.id === id);
+      const updatedCart = currentCart.filter(item => item.id !== id);
+      triggerNotification("success", `"${getProductName(product)}" removed from cart`);
+      return updatedCart;
+    });
   };
 
   const updateQuantity = (id, quantity) => {
@@ -38,19 +75,22 @@ export const CartProvider = ({ children }) => {
       removeFromCart(id);
       return;
     }
-    setCart(cart.map(item => item.id === id ? { ...item, quantity } : item));
+    setCart(currentCart => 
+      currentCart.map(item => item.id === id ? { ...item, quantity } : item)
+    );
   };
 
-  // --- UPDATE: Renamed to be consistent with other components ---
   const addToFavorites = (product) => {
-    const exists = favorites.find(item => item.id === product.id);
-    if (exists) {
-      setFavorites(favorites.filter(item => item.id !== product.id));
-      triggerNotification("error", `"${getProductName(product)}" removed from favorites`);
-    } else {
-      setFavorites([...favorites, product]);
-      triggerNotification("success", `"${getProductName(product)}" added to favorites`);
-    }
+    setFavorites(currentFavorites => {
+      const exists = currentFavorites.find(item => item.id === product.id);
+      if (exists) {
+        triggerNotification("error", `"${getProductName(product)}" removed from favorites`);
+        return currentFavorites.filter(item => item.id !== product.id);
+      } else {
+        triggerNotification("success", `"${getProductName(product)}" added to favorites`);
+        return [...currentFavorites, product];
+      }
+    });
   };
 
   const isFavorite = (id) => favorites.some(item => item.id === id);
@@ -60,10 +100,11 @@ export const CartProvider = ({ children }) => {
     triggerNotification("success", "Cart cleared successfully");
   };
 
-  // --- UPDATE: Added a debug log to see the cart state in real-time ---
-  // You can remove this in production
+  // --- UPDATE: Removed debug log and replaced with a development-only check ---
   useEffect(() => {
-    console.log("Cart Updated:", cart);
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Cart Updated:", cart);
+    }
   }, [cart]);
 
   return (
@@ -75,7 +116,7 @@ export const CartProvider = ({ children }) => {
       addToCart, 
       removeFromCart, 
       updateQuantity,
-      addToFavorites, // UPDATE: Consistent naming
+      addToFavorites,
       isFavorite,
       clearCart
     }}>

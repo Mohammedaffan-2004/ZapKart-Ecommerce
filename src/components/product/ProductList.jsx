@@ -1,30 +1,37 @@
-// components/product/ProductList.jsx
-import React, { useState, useEffect, useMemo } from "react";
-import { motion as Motion } from "framer-motion";
-import { Loader2, Package, Sparkles, Grid, List, AlertCircle } from "lucide-react";
+// components/product/ProductList.jsx - UPDATED VERSION
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Package, Sparkles, Grid, List, AlertCircle, ChevronDown } from "lucide-react";
 import ProductCard from "./ProductCard";
 
 const ProductList = ({ 
   products = [], 
   loading = false, 
-  onLoadMore // UPDATE: Added a prop for loading more products
+  error = null,
+  onLoadMore,
+  hasMore = false,
+  loadingMore = false
 }) => {
   const [viewMode, setViewMode] = useState("grid");
-  const [sortBy, setSortBy] = useState("featured"); // UPDATE: Added state for sorting
-  const [error, setError] = useState(null);
+  const [sortBy, setSortBy] = useState("featured");
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const sortRef = useRef(null);
 
-  // --- UPDATE: Removed console.log statements for cleaner code ---
-
+  // Close dropdown when clicking outside
   useEffect(() => {
-    if (products && !Array.isArray(products)) {
-      console.error("Products is not an array:", products);
-      setError("Invalid products data format");
-    } else {
-      setError(null);
-    }
-  }, [products]);
+    const handleClickOutside = (event) => {
+      if (sortRef.current && !sortRef.current.contains(event.target)) {
+        setSortDropdownOpen(false);
+      }
+    };
 
-  // --- UPDATE: Implemented sorting logic with useMemo for performance ---
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Memoized sorting logic
   const sortedProducts = useMemo(() => {
     if (!products || products.length === 0) return [];
 
@@ -38,16 +45,41 @@ const ProductList = ({
         return sortableProducts.sort((a, b) => (a.name || a.title || '').localeCompare(b.name || b.title || ''));
       case "rating-desc":
         return sortableProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      case "discount-desc":
+        return sortableProducts.sort((a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0));
       case "featured":
       default:
-        return sortableProducts; // Return original order for 'featured'
+        return sortableProducts;
     }
   }, [products, sortBy]);
 
-  if (loading) {
+  // Memoized sort options
+  const sortOptions = useMemo(() => [
+    { value: "featured", label: "Featured" },
+    { value: "price-asc", label: "Price: Low to High" },
+    { value: "price-desc", label: "Price: High to Low" },
+    { value: "name-asc", label: "Name: A to Z" },
+    { value: "rating-desc", label: "Best Rated" },
+    { value: "discount-desc", label: "Biggest Discount" }
+  ], []);
+
+  // Get current sort label
+  const currentSortLabel = useMemo(() => {
+    const option = sortOptions.find(opt => opt.value === sortBy);
+    return option ? option.label : "Featured";
+  }, [sortBy, sortOptions]);
+
+  // Handle sort change
+  const handleSortChange = useCallback((value) => {
+    setSortBy(value);
+    setSortDropdownOpen(false);
+  }, []);
+
+  // Loading state
+  if (loading && products.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Motion.div
+        <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
@@ -59,12 +91,13 @@ const ProductList = ({
             </div>
           </div>
           <p className="mt-4 text-gray-400 font-medium">Loading Premium Products...</p>
-        </Motion.div>
+        </motion.div>
       </div>
     );
   }
 
-  if (error) {
+  // Error state
+  if (error && products.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center p-8 bg-red-500/10 border border-red-500/30 rounded-xl">
@@ -76,9 +109,10 @@ const ProductList = ({
     );
   }
 
+  // Empty state
   if (!products || products.length === 0) {
     return (
-      <Motion.div
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-center min-h-[400px]"
@@ -91,14 +125,14 @@ const ProductList = ({
             <p className="text-gray-500">Try adjusting your filters or search query</p>
           </div>
         </div>
-      </Motion.div>
+      </motion.div>
     );
   }
 
   return (
     <div className="relative">
       {/* Header */}
-      <Motion.div
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
@@ -114,7 +148,6 @@ const ProductList = ({
           <span className="text-gray-400">{sortedProducts.length} Products Found</span>
           
           {/* View Toggle */}
-          {/* --- UPDATE: Improved accessibility with fieldset --- */}
           <fieldset className="flex bg-white/10 backdrop-blur-sm rounded-lg p-1">
             <legend className="sr-only">View Mode</legend>
             <button
@@ -142,24 +175,52 @@ const ProductList = ({
           </fieldset>
           
           {/* Sort Dropdown */}
-          {/* --- UPDATE: Made the sort dropdown functional --- */}
-          <select 
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            aria-label="Sort products"
-            className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-          >
-            <option value="featured">Featured</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="name-asc">Name: A to Z</option>
-            <option value="rating-desc">Best Rated</option>
-          </select>
+          <div ref={sortRef} className="relative">
+            <button
+              onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+              className="flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              aria-expanded={sortDropdownOpen}
+              aria-haspopup="listbox"
+            >
+              <span className="mr-2">{currentSortLabel}</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${sortDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            <AnimatePresence>
+              {sortDropdownOpen && (
+                <motion.ul
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute right-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 z-50 overflow-hidden"
+                  role="listbox"
+                >
+                  {sortOptions.map((option) => (
+                    <li key={option.value}>
+                      <button
+                        onClick={() => handleSortChange(option.value)}
+                        className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                          sortBy === option.value
+                            ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
+                            : "text-gray-300 hover:bg-white/10"
+                        }`}
+                        role="option"
+                        aria-selected={sortBy === option.value}
+                      >
+                        {option.label}
+                      </button>
+                    </li>
+                  ))}
+                </motion.ul>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </Motion.div>
+      </motion.div>
 
       {/* Product Grid/List */}
-      <Motion.div 
+      <motion.div 
         layout
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -170,43 +231,51 @@ const ProductList = ({
             : "space-y-4"
         }
       >
-        {/* --- UPDATE: Map over the sorted products --- */}
-        {sortedProducts.map((product, index) => (
-          <Motion.div
-            key={product.id || index}
-            layout
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ 
-              duration: 0.5, 
-              delay: index * 0.05,
-              ease: "easeOut"
-            }}
-          >
-            <ProductCard product={product} viewMode={viewMode} />
-          </Motion.div>
-        ))}
-      </Motion.div>
+        <AnimatePresence>
+          {sortedProducts.map((product, index) => (
+            <motion.div
+              key={product.id || index}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ 
+                duration: 0.5, 
+                delay: index * 0.05,
+                ease: "easeOut"
+              }}
+            >
+              <ProductCard product={product} viewMode={viewMode} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Load More Button */}
-      {/* --- UPDATE: Made the "Load More" button functional --- */}
-      {onLoadMore && products.length > 0 && products.length >= 20 && (
-        <Motion.div
+      {onLoadMore && hasMore && (
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.8 }}
           className="text-center mt-12"
         >
-          <Motion.button
+          <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onLoadMore}
-            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300"
+            disabled={loadingMore}
+            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 flex items-center justify-center mx-auto disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Load More Products
-          </Motion.button>
-        </Motion.div>
+            {loadingMore ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              "Load More Products"
+            )}
+          </motion.button>
+        </motion.div>
       )}
     </div>
   );
