@@ -117,7 +117,7 @@ const FavoritesPage = () => {
                     whileTap={{ scale: 0.9 }}
                     onClick={() => addToFavorites(product)}
                     aria-label="Remove from favorites"
-                    className="absolute top-3 right-3 p-2 bg-white/10 backdrop-blur-sm rounded-full shadow-md hover:bg-red-500/20 transition-colors"
+                    className="absolute top-3 right-3 p-2 bg-white/10 backdrop-blur-sm rounded-full shadow-md hover:bg-red-500/20 transition-colors cursor-pointer"
                   >
                     <Heart className="h-5 w-5 text-red-500" fill="currentColor" />
                   </Motion.button>
@@ -165,7 +165,7 @@ const FavoritesPage = () => {
                       whileTap={{ scale: 0.98 }}
                       onClick={() => addToCart(product)}
                       aria-label="Add product to cart"
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-1 shadow-md text-sm"
+                      className="flex-1 cursor-pointer bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-1 shadow-md text-sm"
                     >
                       <ShoppingCart className="h-4 w-4" />
                       <span>Add to Cart</span>
@@ -175,7 +175,7 @@ const FavoritesPage = () => {
                       whileTap={{ scale: 0.98 }}
                       onClick={() => addToFavorites(product)}
                       aria-label="Remove from favorites"
-                      className="p-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-colors"
+                      className="p-2 cursor-pointer bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-colors"
                     >
                       <Heart className="h-4 w-4 text-red-500" fill="currentColor" />
                     </Motion.button>
