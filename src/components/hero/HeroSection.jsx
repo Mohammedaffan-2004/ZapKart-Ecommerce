@@ -42,7 +42,7 @@ const VideoModal = ({ isOpen, onClose }) => {
           <div className="aspect-video">
             <iframe
               className="w-full h-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ" // Replace with actual demo video
+              src="https://youtu.be/SSXA2XluIBU?si=sPEwZj6D-J2gLNRY" // Replace with actual demo video
               title="ZapKart Demo"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -106,8 +106,8 @@ const ProductCard = ({ product, onAddToCart }) => {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-2xl sm:text-3xl font-bold text-white">${product.price}</span>
-              <span className="text-gray-400 line-through ml-2 text-sm sm:text-base">${product.originalPrice}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-white"> ₹{product.price}</span>
+              <span className="text-gray-400 line-through ml-2 text-sm sm:text-base"> ₹{product.originalPrice}</span>
             </div>
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -185,8 +185,8 @@ const HeroSection = () => {
   const heroProduct = {
     id: 'hero-headphones-1',
     name: 'Premium Wireless Headphones',
-    price: 299,
-    originalPrice: 599,
+    price: 999,
+    originalPrice: 1999,
     discount: 50,
     reviews: 2345,
     image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'
