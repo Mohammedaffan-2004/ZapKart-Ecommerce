@@ -1,4 +1,4 @@
-// components/hero/HeroSection.jsx
+// components/hero/HeroSection.jsx - RESPONSIVE VERSION
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -62,60 +62,61 @@ const VideoModal = ({ isOpen, onClose }) => {
   );
 };
 
-// Product Card Component
+// Product Card Component - RESPONSIVE VERSION
 const ProductCard = ({ product, onAddToCart }) => {
   return (
     <motion.div
       animate={{ y: [0, -10, 0] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      className="relative"
+      className="relative max-w-md mx-auto lg:max-w-none"
     >
       {/* Glow Effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-3xl blur-3xl opacity-30"></div>
       
       {/* Product Card */}
-      <div className="relative bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl">
-        <div className="aspect-square relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200">
+      <div className="relative bg-white/10 backdrop-blur-md rounded-3xl p-4 sm:p-6 lg:p-8 border border-white/20 shadow-2xl">
+        {/* FIX: Changed aspect ratio and added responsive sizing */}
+        <div className="relative aspect-[4/3] sm:aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200">
           <img 
             src={product.image}
             alt={product.name} 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain p-4 sm:p-6"
           />
           
           {/* Floating Badge */}
           <motion.div
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg"
+            className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-gradient-to-r from-red-500 to-pink-500 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg"
           >
             -{product.discount}% OFF
           </motion.div>
         </div>
         
         {/* Product Info */}
-        <div className="mt-6">
-          <h3 className="text-white text-xl font-bold mb-2">{product.name}</h3>
+        <div className="mt-4 sm:mt-6">
+          <h3 className="text-white text-lg sm:text-xl font-bold mb-2">{product.name}</h3>
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
-            <span className="text-gray-300 text-sm">({product.reviews} reviews)</span>
+            <span className="text-gray-300 text-xs sm:text-sm">({product.reviews} reviews)</span>
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-3xl font-bold text-white">${product.price}</span>
-              <span className="text-gray-400 line-through ml-2">${product.originalPrice}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-white">${product.price}</span>
+              <span className="text-gray-400 line-through ml-2 text-sm sm:text-base">${product.originalPrice}</span>
             </div>
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => onAddToCart(product)}
-              className="p-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full text-white shadow-lg"
+              className="p-2 sm:p-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full text-white shadow-lg"
               aria-label={`Add ${product.name} to cart`}
             >
-              <ShoppingCart className="h-5 w-5 cursor-pointer" />
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 cursor-pointer" />
             </motion.button>
           </div>
         </div>
@@ -142,26 +143,27 @@ const FeatureCard = ({ icon: Icon, label, description, delay }) => {
   );
 };
 
-// Floating Info Card Component
+// FIX: Updated Floating Info Card Component for better responsiveness
 const FloatingCard = ({ icon: Icon, title, subtitle, delay, position }) => {
+  // Responsive positioning classes
   const positionClasses = {
-    'top-right': 'absolute -top-8 -right-8',
-    'bottom-left': 'absolute -bottom-8 -left-8'
+    'top-right': 'hidden lg:block absolute -top-4 lg:-top-8 -right-4 lg:-right-8',
+    'bottom-left': 'hidden lg:block absolute -bottom-4 lg:-bottom-8 -left-4 lg:-left-8'
   };
 
   return (
     <motion.div
       animate={{ y: [0, -10, 0] }}
       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay }}
-      className={`${positionClasses[position]} bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-xl`}
+      className={`${positionClasses[position]} bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/20 shadow-xl`}
     >
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
-          <Icon className="h-6 w-6 text-blue-400" />
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+          <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
         </div>
         <div>
-          <p className="text-white font-semibold">{title}</p>
-          <p className="text-gray-400 text-sm">{subtitle}</p>
+          <p className="text-white font-semibold text-sm">{title}</p>
+          <p className="text-gray-400 text-xs">{subtitle}</p>
         </div>
       </div>
     </motion.div>
@@ -241,10 +243,10 @@ const HeroSection = () => {
   };
 
   return (
-    <section ref={heroRef} className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 py-20 lg:py-28">
+    <section ref={heroRef} className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 py-16 sm:py-20 lg:py-28">
       {/* Background */}
       <div className="absolute inset-0">
-        {/* Background Image Overlay */}
+        {/* FIX: Improved background image handling */}
         <div className="absolute inset-0">
           <img 
             src="https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80"
@@ -268,7 +270,7 @@ const HeroSection = () => {
       )}
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -283,7 +285,7 @@ const HeroSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30 backdrop-blur-sm text-blue-300 text-sm font-medium mb-6"
+              className="inline-flex items-center px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30 backdrop-blur-sm text-blue-300 text-xs sm:text-sm font-medium mb-4 sm:mb-6"
             >
               <Sparkles className="h-4 w-4 mr-2" />
               New Collection 2025 - Limited Time Offer
@@ -295,7 +297,7 @@ const HeroSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight"
             >
               <span className="text-white">Discover</span>
               <br />
@@ -312,7 +314,7 @@ const HeroSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="text-lg text-gray-300 mb-8 max-w-2xl"
+              className="text-base sm:text-lg text-gray-300 mb-6 sm:mb-8 max-w-2xl"
             >
               Experience the future of e-commerce with AI-powered recommendations, 
               seamless checkout, and exclusive deals on premium products.
@@ -324,18 +326,18 @@ const HeroSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 mb-12"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-12"
             >
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleStartShopping}
-                className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 overflow-hidden"
+                className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 overflow-hidden w-full sm:w-auto"
                 aria-label="Start shopping now"
               >
                 <span className="relative z-10 flex items-center justify-center">
                   Start Shopping
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-cyan-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </motion.button>
@@ -344,10 +346,10 @@ const HeroSection = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleWatchDemo}
-                className="group px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300 flex items-center justify-center"
+                className="group px-6 sm:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl sm:rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300 flex items-center justify-center w-full sm:w-auto"
                 aria-label="Watch demo video"
               >
-                <Play className="h-5 w-5 mr-2" />
+                <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Watch Demo
               </motion.button>
             </motion.div>
@@ -358,27 +360,27 @@ const HeroSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="flex flex-col sm:flex-row items-center gap-8"
+              className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 mb-8 sm:mb-12"
             >
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-2">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 border-2 border-white"></div>
+                    <div key={i} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 border-2 border-white"></div>
                   ))}
                 </div>
-                <span className="text-gray-300">50,000+ Happy Customers</span>
+                <span className="text-gray-300 text-sm sm:text-base">50,000+ Happy Customers</span>
               </div>
               
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
                 ))}
-                <span className="text-gray-300 ml-1">4.9/5 Rating</span>
+                <span className="text-gray-300 ml-1 text-sm sm:text-base">4.9/5 Rating</span>
               </div>
             </motion.div>
 
             {/* Features Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FeatureCard 
                 icon={Shield} 
                 label="Secure Payment" 
@@ -406,7 +408,7 @@ const HeroSection = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative"
+            className="relative mt-12 lg:mt-0"
           >
             <ProductCard product={heroProduct} onAddToCart={handleAddToCart} />
             
@@ -435,7 +437,7 @@ const HeroSection = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.8 }}
-          className="flex justify-center mt-16"
+          className="flex justify-center mt-12 sm:mt-16"
         >
           <motion.div
             animate={{ y: [0, 10, 0] }}
